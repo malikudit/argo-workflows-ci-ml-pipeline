@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.1/css/bootstrap.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        /* Set some global styles for the page */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+
+        /* Style the form container */
+        .form-container {
+            width: 50%;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+			text-align: center;
+        }
+
+        /* Style the form itself */
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Style the form labels */
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* Style the file input */
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Style the submit button */
+        input[type="submit"] {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #3e8e41;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Workflow Upload Tool</h1>
+		<form method="POST" enctype="multipart/form-data">
+			{{ form.csrf_token }}
+			<label for="{{ form.file.id }}">Select a file:</label>
+			{{ form.file(class="form-control-file") }}
+			<button type="submit" class="btn btn-primary">Upload</button>
+		</form>
+		
+    </div>
+</body>
+</html>

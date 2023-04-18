@@ -1,0 +1,78 @@
+apiversion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: iris-demo-
+spec:
+  entrypoint: iris
+  templates:
+    - name: iris
+      dag:
+        tasks:
+          - name: generate-data
+            template: preprocess
+          - name: build-model
+            dependencies: [generate-data]
+            arguments:
+              artifacts:
+                - name: x-train
+                  from: "{{tasks.generate-data.outputs.artifacts.x-train}}"
+                - name: x-test
+                  from: "{{tasks.generate-data.outputs.artifacts.x-test}}"
+                - name: y-train
+                  from: "{{tasks.generate-data.outputs.artifacts.y-train}}"
+                - name: y-test
+                  from: "{{tasks.generate-data.outputs.artifacts.y-test}}"
+            template: train-test-report
+          - name: output-result
+            dependencies: [build-model]
+            arguments:
+              artifacts:
+                - name: perf-report
+                  from: "{{tasks.build-model.outputs.artifacts.score}}"
+            template: argocat  
+    - name: preprocess
+      container:
+        image: jayefee/argo-exp-generate:1.0.2
+        command: ["python"]
+        args: ["generate_data.py", "--location", "https://raw.githubusercontent.com/JesuFemi-O/Remote_Datasets/main/data/iris_data.csv"]
+      outputs:
+        artifacts:
+          - name: x-train
+            path: "/tmp/x_train.csv"
+          - name: x-test
+            path: "/tmp/x_test.csv"
+          - name: y-train
+            path: "/tmp/y_train.csv"
+          - name: y-test
+            path: "/tmp/y_test.csv"
+    
+    - name: train-test-report
+      container:
+        image: jayefee/argo-exp-build:1.0.2
+        command: ["python"]
+        args: ["build_model.py"]
+      inputs:
+        artifacts:
+          - name: x-train
+            path: /tmp/x_train.csv
+          - name: x-test
+            path: /tmp/x_test.csv
+          - name: y-train
+            path: /tmp/y_train.csv
+          - name: y-test
+            path: /tmp/y_test.csv
+      outputs:
+        artifacts:
+          - name: score
+            path: /tmp/score.txt
+          - name: model-pkl
+            path: /tmp/finalized_model.sav
+    - name: argocat
+      inputs:
+        artifacts:
+          - name: perf-report
+            path: /tmp/score.txt
+      container:
+        image: alpine:latest
+        command: [cat, "/tmp/score.txt"]
+            

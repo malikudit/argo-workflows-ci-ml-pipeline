@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: summarize
+spec:
+  entrypoint: show
+  templates:
+    - name: show
+      inputs:
+        parameters:
+          - name: n_rows
+            value: 10
+        artifacts:
+          - name: dataset-csv
+            path: /home/anaconda/dataset.csv
+            mode: 0755
+      script:
+        image: continuumio/miniconda:4.7.12-alpine
+        command: [sh]
+        source: |
+          echo "The dataset first {{inputs.parameters.n_rows}} rows:"
+          head -n {{inputs.parameters.n_rows}} {{inputs.artifacts.dataset-csv.path}}
+        resources:
+          limits:
+            memory: 32Mi
+            cpu: 100m

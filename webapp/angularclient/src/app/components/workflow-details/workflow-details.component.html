@@ -1,0 +1,66 @@
+<div>
+    <div *ngIf="currentWorkflow.id" class="edit-form">
+      <h4>Tutorial</h4>
+      <form>
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="name"
+            [(ngModel)]="currentWorkflow.name"
+            name="name"
+          />
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <input
+            type="text"
+            class="form-control"
+            id="description"
+            [(ngModel)]="currentWorkflow.description"
+            name="description"
+          />
+        </div>
+  
+        <div class="form-group">
+          <label><strong>Status:</strong></label>
+          {{ currentWorkflow.completed ? "Completed" : "Pending" }}
+        </div>
+      </form>
+  
+      <button
+        class="badge badge-primary mr-2"
+        *ngIf="currentWorkflow.completed"
+        (click)="updateCompleted(false)"
+      >
+        Mark incomplete
+      </button>
+      <button
+        *ngIf="!currentWorkflow.completed"
+        class="badge badge-primary mr-2"
+        (click)="updateCompleted(true)"
+      >
+        Mark complete
+      </button>
+  
+      <button class="badge badge-danger mr-2" (click)="deleteWorkflow()">
+        Delete
+      </button>
+  
+      <button
+        type="submit"
+        class="badge badge-success mb-2"
+        (click)="updateWorkflow()"
+      >
+        Update
+      </button>
+      <p>{{ message }}</p>
+    </div>
+  
+    <div *ngIf="!currentWorkflow.id">
+      <br />
+      <p>Cannot access this workflow.</p>
+    </div>
+  </div>
+  

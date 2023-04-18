@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: train-model
+spec:
+  serviceAccountName: argo
+  entrypoint: pipeline
+  templates:
+  - name: pipeline
+    dag:
+      tasks:
+        - name: download-dataset
+          templateRef:
+            name: download
+            template: download
+
+        - name: summarize
+          dependencies: [download-dataset]
+          templateRef:
+            name: summarize
+            template: show
+          arguments:
+            artifacts:
+              - name: dataset-csv
+                from: "{{tasks.download-dataset.outputs.artifacts.dataset-csv}}"
+
+        - name: train
+          dependencies: [download-dataset]
+          templateRef:
+            name: train
+            template: train
+          arguments:
+            artifacts:
+              - name: data
+                from: "{{tasks.download-dataset.outputs.artifacts.dataset-csv}}"

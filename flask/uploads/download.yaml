@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: download
+spec:
+  templates:
+    - name: download
+      inputs:
+        artifacts:
+            - name: data
+              path: /home/anaconda/iris.data
+              mode: 0755
+              http:
+                url: http://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data
+      script:
+        image: continuumio/miniconda:4.7.12-alpine
+        command: [sh]
+        source: |
+          echo "Loading iris dataset to {{inputs.artifacts.data.path}}"
+        resources:
+          limits:
+            memory: 32Mi
+            cpu: 100m
+      outputs:
+        artifacts:
+          - name: dataset-csv
+            path: /home/anaconda/iris.data
+            archive:
+              none: {}
+            s3:
+              endpoint: s3.amazonaws.com
+              bucket: evans-argo-artifacts
+              key: iris.csv
+              accessKeySecret:
+                name: aws
+                key: access-key
+              secretKeySecret:
+                name: aws
+                key: secret-key

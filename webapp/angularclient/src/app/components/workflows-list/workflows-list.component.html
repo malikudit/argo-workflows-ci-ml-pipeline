@@ -1,0 +1,64 @@
+<div class="list row">
+    <div class="col-md-8">
+      <div class="input-group mb-3">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Search by name"
+          [(ngModel)]="name"
+        />
+        <div class="input-group-append">
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="searchName()"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <h4>Workflows List</h4>
+      <ul class="list-group">
+        <li
+          class="list-group-item"
+          *ngFor="let workflow of workflows; let i = index"
+          [class.active]="i == currentIndex"
+          (click)="setActiveWorkflow(workflow, i)"
+        >
+          {{ workflow.name }}
+        </li>
+      </ul>
+  
+      <button class="m-3 btn btn-sm btn-danger" (click)="removeAllWorkflows()">
+        Remove All
+      </button>
+    </div>
+    <div class="col-md-6">
+      <div *ngIf="currentWorkflow.id">
+        <h4>Workflow</h4>
+        <div>
+          <label><strong>Name:</strong></label> {{ currentWorkflow.name }}
+        </div>
+        <div>
+          <label><strong>Description:</strong></label>
+          {{ currentWorkflow.description }}
+        </div>
+        <div>
+          <label><strong>Status:</strong></label>
+          {{ currentWorkflow.completed ? "Completed" : "Pending" }}
+        </div>
+  
+        <a class="badge badge-warning" routerLink="/workflows/{{ currentWorkflow.id }}">
+          Edit
+        </a>
+      </div>
+  
+      <div *ngIf="!currentWorkflow">
+        <br />
+        <p>Click on a workflow!</p>
+      </div>
+    </div>
+  </div>
+  

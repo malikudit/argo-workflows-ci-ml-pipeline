@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: train
+spec:
+  templates:
+    - name: train
+      inputs:
+        parameters:
+          - name: test_size
+            value: 0.33
+          - name: random_state
+            value: 42
+        artifacts:
+          - name: data
+            path: /home/anaconda/iris.data
+      container:
+        image: evamicur/simple-ml
+        args: ["train", "--data={{inputs.artifacts.data.path}}", "--output={{outputs.artifacts.model.path}}"]
+        resources:
+          limits:
+            memory: 1Gi
+            cpu: 1000m
+      outputs:
+        artifacts:
+          - name: model
+            path: /home/anaconda/model.joblib
+            archive:
+              none: {}
+            s3:
+              endpoint: s3.amazonaws.com
+              bucket: evans-argo-artifacts
+              key: model.joblib
+              accessKeySecret:
+                name: aws
+                key: access-key
+              secretKeySecret:
+                name: aws
+                key: secret-key

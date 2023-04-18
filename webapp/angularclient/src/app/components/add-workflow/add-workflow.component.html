@@ -1,0 +1,38 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<div>
+    <div class="submit-form">
+      <div *ngIf="!submitted">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="name"
+            required
+            [(ngModel)]="workflow.name"
+            name="name"
+          />
+        </div>
+  
+        <div class="form-group">
+          <label for="description">Description</label>
+          <input
+            class="form-control"
+            id="description"
+            required
+            [(ngModel)]="workflow.description"
+            name="description"
+          />
+        </div>
+  
+        <button (click)="saveWorkflow()" class="btn btn-success">Submit</button>
+      </div>
+  
+      <div *ngIf="submitted">
+        <h4>Tutorial was submitted successfully!</h4>
+        <button class="btn btn-success" (click)="newWorkflow()">Add</button>
+      </div>
+    </div>
+  </div>
+  
