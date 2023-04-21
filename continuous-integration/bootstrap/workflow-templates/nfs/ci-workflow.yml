@@ -1,0 +1,122 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: ci-workflow
+  annotations:
+    workflows.argoproj.io/description: >-
+      A basic CI leveraging Argo Workflows.
+
+      The workflow
+
+      * pulls a repo from git. Specifically pulling a branch based on a pull request;
+      * merges the target branch into it;
+      * modifies the html that will be copied into the container to inject the unique name of the running workflow;
+      * builds a container from a Dockerfile and pushes to a registry;
+      * deploys an Argo CD application that uses the newly-built container to deploy a static website.
+
+    workflows.argoproj.io/maintainer: "Udit Malik"
+    workflows.argoproj.io/maintainer_url: "https://github.com/malikudit/argo-workflows-continuous-integration"
+    workflows.argoproj.io/version: ">= 3.3.6"
+spec:
+  metrics:
+    prometheus:
+      - name: exec_duration_gauge
+        labels:
+          - key: name
+            value: "ci-workflow"
+          - key: type
+            value: "pull-request"
+          - key: status
+            value: "{{status}}"
+        help: "Duration gauge by name"
+        gauge:
+          value: "{{workflow.duration}}"
+          realtime: false
+      - name: result_counter
+        help: "Count of step execution by result status"
+        labels:
+          - key: status
+            value: Failed
+          - key: name
+            value: "ci-workflow"
+          - key: type
+            value: "pull-request"
+        when: "{{status}} == Failed"
+        counter:
+          value: "1"
+      - name: result_counter
+        help: "Count of step execution by result status"
+        labels:
+          - key: status
+            value: Succeeded
+          - key: name
+            value: "ci-workflow"
+          - key: type
+            value: "pull-request"
+        when: "{{status}} == Succeeded"
+        counter:
+          value: "1"
+  entrypoint: main
+  volumeClaimTemplates:
+    - metadata:
+        name: workdir
+      spec:
+        accessModes: ["ReadWriteMany"]
+        storageClassName: nfs
+        resources:
+          requests:
+            storage: 1Gi
+  volumes:
+    - name: container-build
+      emptyDir: {}
+  arguments:
+    parameters:
+      - name: app_repo
+        value: ""
+      - name: git_branch
+        value: ""
+      - name: target_branch
+        value: ""
+      - name: container_tag
+        value: "stable"
+      - name: container_image
+        value: ""
+      - name: dockerfile
+        value: ""
+      - name: path
+        value: ""
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: git-checkout-pr
+            templateRef:
+              name: git-checkout-pr
+              template: main
+          - name: html-modifier
+            templateRef:
+              name: html-modifier
+              template: main
+            depends: git-checkout-pr
+          - name: container-build
+            templateRef:
+              name: container-build
+              template: main
+            depends: html-modifier
+          - name: deploy-application
+            templateRef:
+              name: deploy-application
+              template: main
+            depends: container-build
+          - name: delete-application
+            template: delete-application
+            depends: (deploy-application.Failed)
+    - name: delete-application
+      resource:
+        action: delete
+        manifest: |
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: final-application
+            namespace: argocd
